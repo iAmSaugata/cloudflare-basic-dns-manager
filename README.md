@@ -30,7 +30,7 @@ A self-hosted web GUI to **view, add, edit, delete** Cloudflare DNS records (A, 
 - Copy the token (starts with `cf…`)
 - Get your **Zone ID** from your domain’s Overview page
 
-<img width="314" height="338" alt="Cloudflare API Setup" src="https://github.com/user-attachments/assets/60d4068f-1c5d-4320-9768-c187b31fb1aa" />
+<img width="314" height="338" alt="Cloudflare API Setup" src="https://github.com/user-attachments/assets/b33b30bb-9b31-453d-84f3-1322e00ec6a3" />
 
 
 ---
