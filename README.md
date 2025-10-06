@@ -105,14 +105,14 @@ Access the UI at: [http://localhost:8080](http://localhost:8080)
 
 ### 🔐 Login Page  
 <div align="center">
-  <img width="361" height="323" alt="Login Page" src="https://github.com/user-attachments/assets/45e9c0ef-bc57-4830-991c-92416189464b" />
+  <img width="361" height="323" alt="Login Page" src="https://github.com/user-attachments/assets/ae765238-5d45-4fc0-abe3-1825f0a7950e" />
   <br/>
   <strong>Login screen with password field and submit button.</strong>
 </div>
 
 ### 🌍 Zone Selection  
 <div align="center">
-  <img width="544" height="677" alt="Zone Selection" src="https://github.com/user-attachments/assets/51d2ca1e-864d-4284-90fa-d1a64d5b5fb3" />
+  <img width="544" height="677" alt="Zone Selection" src="https://github.com/user-attachments/assets/045608c4-d7ee-4496-bd95-384ccb44fbcf" />
   <br/>
   <strong>Zone cards showing domain name, plan, and Open button.</strong>
 </div>
@@ -120,37 +120,37 @@ Access the UI at: [http://localhost:8080](http://localhost:8080)
 ### 🛠️ DNS Management  
 
 <div align="center">
-  <img width="585" height="286" alt="DNS Management" src="https://github.com/user-attachments/assets/93d06056-1fb0-41e5-8b85-b9d8c61472b2" />
+  <img width="585" height="286" alt="DNS Management" src="https://github.com/user-attachments/assets/c6e6d4e0-92fc-4c23-b2bc-e9f7ef1b6aa2" />
   <br/>
   <strong>DNS record table with search, filter, and action buttons.</strong>
 </div>
 
 <div align="center">
-  <img width="511" height="541" alt="Add Record" src="https://github.com/user-attachments/assets/588a20e3-7670-4d9f-a3c8-069bd1f51e62" />
+  <img width="511" height="541" alt="Add Record" src="https://github.com/user-attachments/assets/63764ac2-1d89-4a9f-90b6-df1aeaff79f9" />
   <br/>
   <strong>Modal for adding a new DNS record with type, name, and content.</strong>
 </div>
 
 <div align="center">
-  <img width="468" height="460" alt="Edit Record" src="https://github.com/user-attachments/assets/c10af46d-1450-4f52-a34a-3bd54f4d3bb4" />
+  <img width="468" height="460" alt="Edit Record" src="https://github.com/user-attachments/assets/cc66689c-2dce-4c27-813d-05b48ac4ceb6" />
   <br/>
   <strong>Edit modal for modifying an existing DNS record.</strong>
 </div>
 
 <div align="center">
-  <img width="545" height="388" alt="Delete Record" src="https://github.com/user-attachments/assets/ba25df53-739f-4725-ae09-cab2e4bc2ae5" />
+  <img width="545" height="388" alt="Delete Record" src="https://github.com/user-attachments/assets/010d8b66-b274-4c9f-93d3-cee43565b237" />
   <br/>
   <strong>Confirmation modal for deleting a DNS record.</strong>
 </div>
 
 <div align="center">
-  <img width="585" height="382" alt="Bulk Delete" src="https://github.com/user-attachments/assets/b3cce708-4dcc-47dc-a0a0-521246a2601b" />
+  <img width="585" height="382" alt="Bulk Delete" src="https://github.com/user-attachments/assets/09ca1c86-cd77-41b5-a4cb-1197132bd35e" />
   <br/>
   <strong>Bulk delete toolbar with selectable records and delete button.</strong>
 </div>
 
 <div align="center">
-  <img width="585" height="274" alt="Dark Mode" src="https://github.com/user-attachments/assets/6b474de1-e8cc-45c0-91cd-aea29fa946e3" />
+  <img width="585" height="274" alt="Dark Mode" src="https://github.com/user-attachments/assets/e3e849f7-7ce2-41b1-b89c-99a6e1fe6694" />
   <br/>
   <strong>Dark mode theme with persistent toggle in footer.</strong>
 </div>
