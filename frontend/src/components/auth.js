@@ -1,9 +1,10 @@
 import bcrypt from '../lib/bcryptjs.js'
-import { hmacSha256 } from '../lib/hmac.js'
 import { requireConfig, missingConfigKeys } from '../lib/config.js'
 
 const SESSION_COOKIE = 'cf_dns_session'
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000 // 12 hours
+
+let cachedKey = null
 
 function getAuthHash(){
   return requireConfig('AUTH_BCRYPT_HASH')
@@ -28,10 +29,28 @@ function safeEqual(a, b){
   return diff === 0
 }
 
-async function sign(data){
+async function getKey(){
   const secret = getSessionSecret()
-  const sig = await hmacSha256(secret, data)
-  return bytesToBase64(sig)
+  if (cachedKey && cachedKey.secret === secret) return cachedKey.promise
+  const subtle = globalThis.crypto && globalThis.crypto.subtle
+  if (!subtle) throw new Error('Web Crypto API is not available in this environment')
+  const enc = new TextEncoder()
+  const promise = subtle.importKey(
+    'raw',
+    enc.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+  cachedKey = { secret, promise }
+  return promise
+}
+
+async function sign(data){
+  const key = await getKey()
+  const enc = new TextEncoder()
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(data))
+  return bytesToBase64(new Uint8Array(sig))
 }
 
 function setCookie(value){
