@@ -1,41 +1,60 @@
-let password = null
-export function setPassword(pw){
-  password = pw
-  if (pw){
-    localStorage.setItem('app_password', pw)
-    document.cookie = `app_password=${pw}; path=/; SameSite=Lax`
-  }else{
-    localStorage.removeItem('app_password')
-    document.cookie = 'app_password=; Max-Age=0; path=/'
+const ALLOWED_TYPES = new Set(['A', 'AAAA', 'CNAME', 'TXT', 'MX', 'PTR'])
+
+const CF_API_BASE = (import.meta.env.CF_API_BASE || import.meta.env.VITE_CF_API_BASE || 'https://api.cloudflare.com/client/v4')
+const CF_API_TOKEN = import.meta.env.CF_API_TOKEN || import.meta.env.VITE_CF_API_TOKEN
+
+function ensureToken(){
+  if (!CF_API_TOKEN){
+    throw new Error('CF_API_TOKEN is not configured')
   }
 }
-export function getPassword(){ return localStorage.getItem('app_password') || null }
-async function req(path, opts={}){
-  const headers = opts.headers || {}
-  if (password) headers['x-app-password'] = password
-  const res = await fetch(path, { ...opts, headers, credentials: 'include' })
-  if (!res.ok){
-  const t = await res.json().catch(()=>({}))
-  let msg = 'Request failed'
-	  if (t && Array.isArray(t.errors) && t.errors.length){
-		// Cloudflare-style error list → “[9007] Content for NS record is invalid.”
-		msg = t.errors.map(e => (e.code ? `[${e.code}] ` : '') + (e.message || 'Error')).join('; ')
-	  } else if (t && t.error){
-		msg = t.error
-	  } else if (t && t.message){
-		msg = t.message
-	  }
-	  const err = new Error(msg)
-	  err.details = t
-	  throw err
-	}
-  return res.json()
+
+async function cfRequest(path, options = {}){
+  ensureToken()
+  const headers = {
+    'Authorization': `Bearer ${CF_API_TOKEN}`,
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    ...(options.headers || {})
+  }
+  const res = await fetch(`${CF_API_BASE}${path}`, { ...options, headers })
+  const text = await res.text()
+  let json
+  try { json = JSON.parse(text) } catch { json = { raw: text } }
+  if (!res.ok || (json && json.success === false)){
+    let msg = 'Request failed'
+    if (json && Array.isArray(json.errors) && json.errors.length){
+      msg = json.errors.map(e => (e.code ? `[${e.code}] ` : '') + (e.message || 'Error')).join('; ')
+    } else if (json && json.error){
+      msg = json.error
+    } else if (json && json.message){
+      msg = json.message
+    }
+    const err = new Error(msg)
+    err.details = json
+    throw err
+  }
+  return json
 }
+
 export const api = {
-  health(){ return req('/api/health') },
-  zones(){ return req('/api/zones') },
-  listRecords(zoneId){ return req(`/api/zone/${zoneId}/dns_records`) },
-  createRecord(zoneId, payload){ return req(`/api/zone/${zoneId}/dns_records`, { method:'POST', body: JSON.stringify(payload), headers:{ 'Content-Type':'application/json' } }) },
-  updateRecord(zoneId, id, payload){ return req(`/api/zone/${zoneId}/dns_records/${id}`, { method:'PUT', body: JSON.stringify(payload), headers:{ 'Content-Type':'application/json' } }) },
-  deleteRecord(zoneId, id){ return req(`/api/zone/${zoneId}/dns_records/${id}`, { method:'DELETE' }) },
+  async zones(){
+    const params = new URLSearchParams({ per_page: '50' })
+    return cfRequest(`/zones?${params.toString()}`)
+  },
+  async listRecords(zoneId){
+    const params = new URLSearchParams({ per_page: '1000' })
+    const data = await cfRequest(`/zones/${zoneId}/dns_records?${params.toString()}`)
+    const filtered = Array.isArray(data.result) ? data.result.filter(r => ALLOWED_TYPES.has(r.type)) : []
+    return { ...data, result: filtered }
+  },
+  async createRecord(zoneId, payload){
+    return cfRequest(`/zones/${zoneId}/dns_records`, { method: 'POST', body: JSON.stringify(payload) })
+  },
+  async updateRecord(zoneId, id, payload){
+    return cfRequest(`/zones/${zoneId}/dns_records/${id}`, { method: 'PUT', body: JSON.stringify(payload) })
+  },
+  async deleteRecord(zoneId, id){
+    return cfRequest(`/zones/${zoneId}/dns_records/${id}`, { method: 'DELETE' })
+  }
 }
