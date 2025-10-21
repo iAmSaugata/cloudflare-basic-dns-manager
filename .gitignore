@@ -1,0 +1,17 @@
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+.env
+.env.local
+.env.development
+.env.production
+frontend/.env
+frontend/.env.local
+frontend/.env.development
+frontend/.env.production
+!.env.example
+!frontend/.env.example
+.DS_Store
+npm-debug.log*
+yarn-error.log*
