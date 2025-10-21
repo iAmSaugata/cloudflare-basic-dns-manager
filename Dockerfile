@@ -19,5 +19,9 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 RUN npm install -g serve
 COPY --from=builder /app/frontend/dist ./dist
+COPY docker/entrypoint.sh /entrypoint.sh
+COPY docker/runtime-config/generate.js /app/runtime-config/generate.js
+RUN chmod +x /entrypoint.sh
 EXPOSE 4173
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["serve", "-s", "dist", "-l", "4173"]

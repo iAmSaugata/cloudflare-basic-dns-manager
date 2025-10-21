@@ -1,23 +1,24 @@
+import { getConfigValue, requireConfig } from '../lib/config.js'
+
 const ALLOWED_TYPES = new Set(['A', 'AAAA', 'CNAME', 'TXT', 'MX', 'PTR'])
+const DEFAULT_CF_API_BASE = 'https://api.cloudflare.com/client/v4'
 
-const CF_API_BASE = (import.meta.env.CF_API_BASE || import.meta.env.VITE_CF_API_BASE || 'https://api.cloudflare.com/client/v4')
-const CF_API_TOKEN = import.meta.env.CF_API_TOKEN || import.meta.env.VITE_CF_API_TOKEN
-
-function ensureToken(){
-  if (!CF_API_TOKEN){
-    throw new Error('CF_API_TOKEN is not configured')
+function resolveConfig(){
+  return {
+    token: requireConfig('CF_API_TOKEN'),
+    base: getConfigValue('CF_API_BASE', DEFAULT_CF_API_BASE)
   }
 }
 
 async function cfRequest(path, options = {}){
-  ensureToken()
+  const { token, base } = resolveConfig()
   const headers = {
-    'Authorization': `Bearer ${CF_API_TOKEN}`,
+    'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
     'Accept': 'application/json',
     ...(options.headers || {})
   }
-  const res = await fetch(`${CF_API_BASE}${path}`, { ...options, headers })
+  const res = await fetch(`${base}${path}`, { ...options, headers })
   const text = await res.text()
   let json
   try { json = JSON.parse(text) } catch { json = { raw: text } }

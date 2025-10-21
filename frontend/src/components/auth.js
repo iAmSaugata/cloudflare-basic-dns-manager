@@ -1,12 +1,18 @@
 import bcrypt from '../lib/bcryptjs.js'
+import { requireConfig, missingConfigKeys } from '../lib/config.js'
 
 const SESSION_COOKIE = 'cf_dns_session'
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000 // 12 hours
 
-const AUTH_BCRYPT_HASH = import.meta.env.AUTH_BCRYPT_HASH || import.meta.env.VITE_AUTH_BCRYPT_HASH
-const SESSION_SECRET = import.meta.env.SESSION_SECRET || import.meta.env.VITE_SESSION_SECRET
+let cachedKey = null
 
-let cachedKeyPromise = null
+function getAuthHash(){
+  return requireConfig('AUTH_BCRYPT_HASH')
+}
+
+function getSessionSecret(){
+  return requireConfig('SESSION_SECRET')
+}
 
 function bytesToBase64(bytes){
   let binary = ''
@@ -24,19 +30,20 @@ function safeEqual(a, b){
 }
 
 async function getKey(){
-  if (!SESSION_SECRET) throw new Error('SESSION_SECRET is not configured')
-  if (cachedKeyPromise) return cachedKeyPromise
+  const secret = getSessionSecret()
+  if (cachedKey && cachedKey.secret === secret) return cachedKey.promise
   const subtle = globalThis.crypto && globalThis.crypto.subtle
   if (!subtle) throw new Error('Web Crypto API is not available in this environment')
   const enc = new TextEncoder()
-  cachedKeyPromise = subtle.importKey(
+  const promise = subtle.importKey(
     'raw',
-    enc.encode(SESSION_SECRET),
+    enc.encode(secret),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']
   )
-  return cachedKeyPromise
+  cachedKey = { secret, promise }
+  return promise
 }
 
 async function sign(data){
@@ -66,9 +73,9 @@ function getCookie(name){
 }
 
 export async function verifyPassword(password){
-  if (!AUTH_BCRYPT_HASH) throw new Error('AUTH_BCRYPT_HASH is not configured')
+  const hash = getAuthHash()
   if (typeof password !== 'string' || password.length === 0) return false
-  return bcrypt.compareSync(password, AUTH_BCRYPT_HASH)
+  return bcrypt.compareSync(password, hash)
 }
 
 export async function establishSession(){
@@ -106,9 +113,5 @@ export async function hasValidSession(){
 }
 
 export function authConfigIssues(){
-  const issues = []
-  if (!AUTH_BCRYPT_HASH) issues.push('AUTH_BCRYPT_HASH')
-  if (!SESSION_SECRET) issues.push('SESSION_SECRET')
-  if (!import.meta.env.CF_API_TOKEN && !import.meta.env.VITE_CF_API_TOKEN) issues.push('CF_API_TOKEN')
-  return issues
+  return missingConfigKeys(['AUTH_BCRYPT_HASH', 'SESSION_SECRET', 'CF_API_TOKEN'])
 }
