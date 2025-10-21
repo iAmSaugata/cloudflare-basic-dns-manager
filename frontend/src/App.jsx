@@ -3,8 +3,7 @@ import Login from './components/Login.jsx'
 import ToastHost from './components/Toast.jsx'
 import ZoneSelect from './components/ZoneSelect.jsx'
 import DnsManager from './components/DnsManager.jsx'
-import { api } from './components/api.js'
-import { destroySession, hasValidSession } from './components/auth.js'
+import { api, setPassword, getPassword } from './components/api.js'
 
 export default function App(){
   const [view, setView] = useState('login')
@@ -18,27 +17,19 @@ export default function App(){
     localStorage.setItem('theme', theme)
   }, [theme])
 
+  useEffect(()=>{
+    const pw = getPassword()
+    if (pw){
+      setPassword(pw)
+      api.zones().then(d=>{ if (d && d.result) { setZones(d.result); setView('zones') } }).catch(()=>{})
+    }
+  }, [])
+
   const handleLoggedIn = async ()=>{
     const z = await api.zones()
     setZones(z.result || [])
     setView('zones')
   }
-
-  useEffect(()=>{
-    let cancelled = false
-    ;(async ()=>{
-      try{
-        if (await hasValidSession()){
-          await handleLoggedIn()
-        }
-      }catch(err){
-        console.error('Failed to resume session', err)
-        destroySession()
-        if (!cancelled) setView('login')
-      }
-    })()
-    return ()=>{ cancelled = true }
-  }, [])
 
   const openZone = (z)=>{
     setZone(z)
@@ -47,9 +38,7 @@ export default function App(){
   }
 
   const signOut = ()=>{
-    destroySession()
-    setZone(null)
-    setZones([])
+    setPassword(null)
     setView('login')
     document.title = 'Cloudflare DNS Manager'
   }
@@ -63,7 +52,7 @@ export default function App(){
       {view === 'login' && <Login onLoggedIn={handleLoggedIn}/>}
       {view === 'zones' && <ZoneSelect zones={zones} onOpen={openZone} onSignOut={signOut}/>}
       {view === 'dns' && zone && <DnsManager zone={zone} onSignOut={signOut} onChangeZone={changeZone}/>}
-      <ToastHost />
+	  <ToastHost />
       <div className="footer">
         Powered by Cloudflare DNS API • © iAmSaugata
         <span className="theme-toggle">
